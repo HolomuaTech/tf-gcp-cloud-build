@@ -9,11 +9,6 @@ resource "google_project_service" "cloud_build_api" {
   project = var.project_id
 }
 
-resource "google_project_service" "artifact_registry_api" {
-  service = "artifactregistry.googleapis.com"
-  project = var.project_id
-}
-
 # Create a Cloud Build trigger for GitHub repository
 resource "google_cloudbuild_trigger" "github_trigger" {
   name = "${var.github_repo}-trigger"
