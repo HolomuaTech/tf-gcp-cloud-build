@@ -18,3 +18,7 @@ variable "github_repo" {
   description = "The name of the GitHub repository."
 }
 
+variable "terraform_sa_email" {
+  type        = string
+  description = "The email of the service account to be used by Cloud Build."
+}

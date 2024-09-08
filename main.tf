@@ -13,7 +13,6 @@ resource "google_project_service" "cloud_build_api" {
 resource "google_cloudbuild_trigger" "github_trigger" {
   name = "${var.github_repo}-trigger"
 
-  # GitHub repository settings
   github {
     owner  = var.github_owner
     name   = var.github_repo
@@ -22,7 +21,6 @@ resource "google_cloudbuild_trigger" "github_trigger" {
     }
   }
 
-  # Define the build steps in-line (instead of using cloudbuild.yaml)
   build {
     step {
       name = "gcr.io/cloud-builders/docker"
@@ -46,6 +44,9 @@ resource "google_cloudbuild_trigger" "github_trigger" {
       ]
     }
   }
+
+  # Use the terraform-sa service account for Cloud Build
+  service_account = var.terraform_sa_email
 }
 
 # IAM binding for Cloud Build service account to push to Artifact Registry
