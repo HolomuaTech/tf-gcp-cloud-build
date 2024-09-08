@@ -3,7 +3,7 @@ provider "google" {
   region  = var.region
 }
 
-# Enable Cloud Build API and Artifact Registry API
+# Enable Cloud Build API
 resource "google_project_service" "cloud_build_api" {
   service = "cloudbuild.googleapis.com"
   project = var.project_id
@@ -33,9 +33,9 @@ resource "google_cloudbuild_trigger" "github_trigger" {
     }
 
     step {
-      name = "gcr.io/google.com/cloudsdktool/cloud-sdk"
+      name       = "gcr.io/google.com/cloudsdktool/cloud-sdk"
       entrypoint = "gcloud"
-      args = [
+      args       = [
         "run", "deploy", "nginx-hello-world",
         "--image", "us-west1-docker.pkg.dev/${var.project_id}/demo-app-docker-repo/nginx-hello-world",
         "--region", var.region,
@@ -45,27 +45,27 @@ resource "google_cloudbuild_trigger" "github_trigger" {
     }
   }
 
-  # Use the terraform-sa service account for Cloud Build
+  # Use terraform-sa service account for Cloud Build
   service_account = var.terraform_sa_email
 }
 
-# IAM binding for Cloud Build service account to push to Artifact Registry
+# IAM binding for terraform-sa to push to Artifact Registry
 resource "google_project_iam_binding" "cloud_build_artifact_registry_permissions" {
   project = var.project_id
   role    = "roles/artifactregistry.admin"
 
   members = [
-    "serviceAccount:${var.project_id}@cloudbuild.gserviceaccount.com"
+    "serviceAccount:${var.terraform_sa_email}"
   ]
 }
 
-# IAM binding for Cloud Build service account to deploy to Cloud Run
+# IAM binding for terraform-sa to deploy to Cloud Run
 resource "google_project_iam_binding" "cloud_build_run_permissions" {
   project = var.project_id
   role    = "roles/run.admin"
 
   members = [
-    "serviceAccount:${var.project_id}@cloudbuild.gserviceaccount.com"
+    "serviceAccount:${var.terraform_sa_email}"
   ]
 }
 
