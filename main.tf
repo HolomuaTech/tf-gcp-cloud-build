@@ -23,13 +23,33 @@ resource "google_cloudbuild_trigger" "github_trigger" {
     owner  = var.github_owner
     name   = var.github_repo
     push {
-      branch = "^main$"  # Set to your desired branch
+      branch = "^main$"
     }
   }
 
-  # Specify the location of the cloudbuild.yaml in the repo
+  # Define the build steps in-line (instead of using cloudbuild.yaml)
   build {
-    filename = "cloudbuild.yaml"
+    step {
+      name = "gcr.io/cloud-builders/docker"
+      args = ["build", "-t", "us-west1-docker.pkg.dev/${var.project_id}/demo-app-docker-repo/nginx-hello-world", "."]
+    }
+
+    step {
+      name = "gcr.io/cloud-builders/docker"
+      args = ["push", "us-west1-docker.pkg.dev/${var.project_id}/demo-app-docker-repo/nginx-hello-world"]
+    }
+
+    step {
+      name = "gcr.io/google.com/cloudsdktool/cloud-sdk"
+      entrypoint = "gcloud"
+      args = [
+        "run", "deploy", "nginx-hello-world",
+        "--image", "us-west1-docker.pkg.dev/${var.project_id}/demo-app-docker-repo/nginx-hello-world",
+        "--region", var.region,
+        "--platform", "managed",
+        "--allow-unauthenticated"
+      ]
+    }
   }
 }
 
