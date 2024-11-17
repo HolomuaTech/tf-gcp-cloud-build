@@ -17,3 +17,9 @@ variable "compute_service_account_id" {
   type        = string
   description = "The service account ID for Compute Engine or Cloud Run to use."
 }
+
+variable "cloud_build_artifact_bucket" {
+  type        = string
+  default     = ""
+  description = "The name of a bucket to create for storing Cloud Build artifacts."
+}
