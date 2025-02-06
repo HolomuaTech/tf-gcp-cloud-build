@@ -9,34 +9,40 @@ resource "google_project_service" "cloud_build_api" {
   project = var.project_id
 }
 
-# IAM binding for terraform-sa to push to Artifact Registry
-resource "google_project_iam_binding" "cloud_build_artifact_registry_permissions" {
+# Grant Cloud Build service account permissions to deploy to Cloud Run
+resource "google_project_iam_member" "cloud_build_run_developer" {
   project = var.project_id
-  role    = "roles/artifactregistry.admin"
-
-  members = [
-    "serviceAccount:${var.terraform_sa_email}"
-  ]
+  role    = "roles/run.developer"
+  member  = "serviceAccount:${var.cloud_build_sa_email}"
 }
 
-# IAM binding for terraform-sa to act as the compute service account for Cloud Run
-resource "google_service_account_iam_binding" "cloud_run_act_as" {
+# Allow Cloud Build to act as the Cloud Run service account
+resource "google_service_account_iam_member" "cloud_build_act_as" {
   service_account_id = var.compute_service_account_id
   role               = "roles/iam.serviceAccountUser"
-
-  members = [
-    "serviceAccount:${var.terraform_sa_email}"
-  ]
+  member             = "serviceAccount:${var.cloud_build_sa_email}"
 }
 
-# IAM binding for terraform-sa to deploy to Cloud Run
-resource "google_project_iam_binding" "cloud_build_run_permissions" {
-  project = var.project_id
-  role    = "roles/run.admin"
+# Create Cloud Build triggers
+resource "google_cloudbuild_trigger" "repo_triggers" {
+  for_each = var.triggers
 
-  members = [
-    "serviceAccount:${var.terraform_sa_email}"
-  ]
+  name        = each.value.name
+  description = each.value.description
+  project     = var.project_id
+  location    = "global"
+
+  service_account = "projects/${var.project_id}/serviceAccounts/cloud-run-sa@${var.project_id}.iam.gserviceaccount.com"
+
+  github {
+    owner = each.value.github_owner
+    name  = each.value.github_repo
+    push {
+      branch = each.value.branch_pattern
+    }
+  }
+
+  filename = "cloudbuild.yaml"
 }
 
 # ------------------------------
