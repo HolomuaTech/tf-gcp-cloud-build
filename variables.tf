@@ -40,3 +40,13 @@ variable "terraform_sa_email" {
   type        = string
   description = "Email of the Terraform service account"
 }
+
+variable "project_number" {
+  type        = string
+  description = "The GCP project number."
+}
+
+variable "shared_project_id" {
+  type        = string
+  description = "The ID of the shared resources project."
+}
