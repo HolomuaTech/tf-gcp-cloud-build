@@ -13,19 +13,31 @@ crash.*.log
 *.tfvars
 *.tfvars.json
 
-# Except our environment tfvars which we DO want to commit
-!dev.tfvars
-!prod.tfvars
-
-# Override files as they are usually used to override resources locally
+# Ignore override files as they are usually used for local dev
 override.tf
 override.tf.json
 *_override.tf
 *_override.tf.json
 
-# CLI configuration files
+# Ignore CLI configuration files
 .terraformrc
 terraform.rc
 
-# Lock files
-.terraform.lock.hcl 
+# Ignore lock files (usually want to regenerate these based on provider versions)
+.terraform.lock.hcl
+
+# OS specific files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Editor specific files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~ 

@@ -13,29 +13,33 @@ variable "app_name" {
   type        = string
 }
 
-variable "artifact_registry" {
-  description = "Artifact Registry configuration"
-  type = object({
-    project_id    = string # shared-resources project
-    location      = string
-    repository_id = string
-  })
-}
-
-variable "microservices" {
-  type = list(object({
-    name        = string
-    dockerfile  = string
-    context_dir = string
-    repo_name   = string
-    branch      = string
-  }))
-  description = "List of microservices to configure build triggers for"
-}
-
-variable "cloudbuild_service_account_email" {
-  description = "Email of the Cloud Build service account"
+variable "environment" {
+  description = "The environment (e.g., 'dev', 'prod')"
   type        = string
+}
+
+variable "location" {
+  description = "The location for the Cloud Build triggers"
+  type        = string
+  default     = "global"
+}
+
+variable "additional_cloudbuild_roles" {
+  description = "Additional IAM roles to grant to Cloud Build service account"
+  type        = list(string)
+  default     = []
+}
+
+variable "included_files" {
+  description = "List of file patterns to trigger builds on"
+  type        = list(string)
+  default     = ["**"]
+}
+
+variable "cloudbuild_filename" {
+  description = "Name of the Cloud Build configuration file"
+  type        = string
+  default     = "cloudbuild.yaml"
 }
 
 variable "triggers" {
@@ -46,11 +50,6 @@ variable "triggers" {
     github_owner   = string
     github_repo    = string
     branch_pattern = string
+    substitutions  = optional(map(string), {})
   }))
-}
-
-variable "grant_build_editor_role" {
-  description = "Whether to grant the Cloud Build Editor role to the Cloud Build service account"
-  type        = bool
-  default     = true
 } 
