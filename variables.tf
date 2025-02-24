@@ -42,6 +42,24 @@ variable "cloudbuild_filename" {
   default     = "cloudbuild.yaml"
 }
 
+variable "shared_artifact_registry_project" {
+  description = "The GCP Project ID where the shared Artifact Registry exists"
+  type        = string
+  default     = ""
+}
+
+variable "shared_artifact_registry_location" {
+  description = "The location of the shared Artifact Registry"
+  type        = string
+  default     = "us-west1"
+}
+
+variable "shared_artifact_registry_name" {
+  description = "The name of the shared Artifact Registry repository"
+  type        = string
+  default     = "shared-container-registry"
+}
+
 variable "triggers" {
   description = "Map of Cloud Build triggers to create"
   type = map(object({

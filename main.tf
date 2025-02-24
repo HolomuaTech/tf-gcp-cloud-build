@@ -19,18 +19,12 @@ data "google_project" "project" {
   project_id = var.project_id
 }
 
-# Grant project-specific permissions to Cloud Build service account
+# Grant essential permissions to default Cloud Build service account
 resource "google_project_iam_member" "cloudbuild_project_roles" {
-  for_each = toset(concat([
-    # Base roles needed for Cloud Build operations
-    "roles/cloudbuild.builds.editor",  # Needed for creating and managing builds
-    "roles/cloudbuild.builds.builder", # Needed for running builds
-    "roles/iam.serviceAccountUser",    # Needed for accessing service accounts
-    "roles/run.admin",                 # Needed for deploying to Cloud Run
-    "roles/storage.admin",             # Needed for accessing build artifacts and Cloud Storage
-    "roles/logging.logWriter",         # Needed for writing build logs
-    "roles/artifactregistry.reader"    # Needed for pulling base images
-  ], var.additional_cloudbuild_roles))  # Additional roles specified by the application
+  for_each = toset([
+    "roles/cloudbuild.builds.builder",
+    "roles/cloudbuild.builds.editor"
+  ])
 
   project = var.project_id
   role    = each.key
@@ -59,19 +53,32 @@ resource "google_service_account" "cloudbuild_trigger_sa" {
 
 # Grant necessary roles to the dedicated service account
 resource "google_project_iam_member" "cloudbuild_trigger_sa_roles" {
-  for_each = toset([
+  for_each = toset(concat([
     "roles/cloudbuild.builds.builder",
     "roles/cloudbuild.builds.editor",
     "roles/iam.serviceAccountUser",
     "roles/run.admin",
     "roles/storage.admin",
-    "roles/logging.logWriter",
-    "roles/artifactregistry.reader"
-  ])
+    "roles/logging.logWriter"
+  ], var.additional_cloudbuild_roles))
 
   project = var.project_id
   role    = each.key
   member  = "serviceAccount:${google_service_account.cloudbuild_trigger_sa.email}"
+}
+
+# Grant Artifact Registry permissions in the shared repository
+resource "google_artifact_registry_repository_iam_member" "shared_repository_permissions" {
+  for_each = var.shared_artifact_registry_project != "" ? {
+    "${data.google_project.project.number}@cloudbuild.gserviceaccount.com" = "Default Cloud Build SA"
+    (google_service_account.cloudbuild_trigger_sa.email) = "Custom Cloud Build SA"
+  } : {}
+
+  project    = var.shared_artifact_registry_project
+  location   = var.shared_artifact_registry_location
+  repository = var.shared_artifact_registry_name
+  role       = "roles/artifactregistry.writer"
+  member     = "serviceAccount:${each.key}"
 }
 
 # Create Cloud Build trigger for each repository
@@ -108,6 +115,7 @@ resource "google_cloudbuild_trigger" "repo_triggers" {
     google_project_service.required_apis,
     google_project_iam_member.cloudbuild_project_roles,
     google_project_iam_member.service_agent_roles,
-    google_project_iam_member.cloudbuild_trigger_sa_roles
+    google_project_iam_member.cloudbuild_trigger_sa_roles,
+    google_artifact_registry_repository_iam_member.shared_repository_permissions
   ]
 }
