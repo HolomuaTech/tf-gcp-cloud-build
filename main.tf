@@ -21,10 +21,10 @@ data "google_project" "project" {
 
 # Grant essential permissions to default Cloud Build service account
 resource "google_project_iam_member" "cloudbuild_project_roles" {
-  for_each = toset([
+  for_each = var.manage_project_permissions ? toset([
     "roles/cloudbuild.builds.builder",
     "roles/cloudbuild.builds.editor"
-  ])
+  ]) : []
 
   project = var.project_id
   role    = each.key
@@ -33,10 +33,10 @@ resource "google_project_iam_member" "cloudbuild_project_roles" {
 
 # Grant service agent roles to the appropriate service accounts
 resource "google_project_iam_member" "service_agent_roles" {
-  for_each = {
+  for_each = var.manage_project_permissions ? {
     "roles/run.serviceAgent" = "serviceAccount:service-${data.google_project.project.number}@serverless-robot-prod.iam.gserviceaccount.com",
     "roles/cloudbuild.serviceAgent" = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-cloudbuild.iam.gserviceaccount.com"
-  }
+  } : {}
 
   project = var.project_id
   role    = each.key

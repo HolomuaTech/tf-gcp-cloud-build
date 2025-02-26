@@ -70,4 +70,10 @@ variable "triggers" {
     branch_pattern = string
     substitutions  = optional(map(string), {})
   }))
+}
+
+variable "manage_project_permissions" {
+  description = "Whether this environment should manage project-level permissions"
+  type        = bool
+  default     = false
 } 
