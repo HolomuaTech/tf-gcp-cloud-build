@@ -67,18 +67,18 @@ resource "google_project_iam_member" "cloudbuild_trigger_sa_roles" {
   member  = "serviceAccount:${google_service_account.cloudbuild_trigger_sa.email}"
 }
 
-# Grant Artifact Registry permissions in the shared repository
+# Grant permissions to Cloud Build service accounts in shared Artifact Registry
 resource "google_artifact_registry_repository_iam_member" "shared_repository_permissions" {
   for_each = var.shared_artifact_registry_project != "" ? {
-    "${data.google_project.project.number}@cloudbuild.gserviceaccount.com" = "Default Cloud Build SA"
-    (google_service_account.cloudbuild_trigger_sa.email) = "Custom Cloud Build SA"
+    "default" = "${data.google_project.project.number}@cloudbuild.gserviceaccount.com"
+    "custom"  = google_service_account.cloudbuild_trigger_sa.email
   } : {}
 
   project    = var.shared_artifact_registry_project
   location   = var.shared_artifact_registry_location
-  repository = var.shared_artifact_registry_name
+  repository = "shared-container-registry"
   role       = "roles/artifactregistry.writer"
-  member     = "serviceAccount:${each.key}"
+  member     = "serviceAccount:${each.value}"
 }
 
 # Create Cloud Build trigger for each repository
