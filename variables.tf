@@ -76,4 +76,22 @@ variable "manage_project_permissions" {
   description = "Whether this environment should manage project-level permissions"
   type        = bool
   default     = false
+}
+
+variable "shared_repository_name" {
+  description = "Name of the shared Artifact Registry repository"
+  type        = string
+  default     = "shared-container-registry"
+}
+
+variable "service_account_id" {
+  description = "Custom service account ID to use for Cloud Build (defaults to {app_name}-{environment}-cloudbuild-sa)"
+  type        = string
+  default     = ""
+}
+
+variable "logging" {
+  description = "Logging option for Cloud Build triggers (CLOUD_LOGGING_ONLY, GCS_ONLY, or NONE)"
+  type        = string
+  default     = "CLOUD_LOGGING_ONLY"
 } 

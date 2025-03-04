@@ -7,4 +7,9 @@ output "triggers" {
       description = v.description
     }
   }
+}
+
+output "cloudbuild_trigger_sa_email" {
+  description = "Email address of the Cloud Build trigger service account"
+  value       = google_service_account.cloudbuild_trigger_sa.email
 } 
